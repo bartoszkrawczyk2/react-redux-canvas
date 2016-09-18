@@ -8,6 +8,9 @@ Demo:
 
 [http://projects.bartoszkrawczyk.com/react-redux-canvas/](http://projects.bartoszkrawczyk.com/react-redux-canvas/)
 
+Tutorial:
+--
+[https://github.com/bartoszkrawczyk2/react-redux-canvas/blob/master/article.md](https://github.com/bartoszkrawczyk2/react-redux-canvas/blob/master/article.md)
 
 How to build :
 --
