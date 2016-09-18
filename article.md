@@ -151,7 +151,7 @@ class Circles extends Component {
 // ...
 ```
 
-Now add `renderCanvas()` method and pass props. This method will handle rendering circles on canvas. Remember to invoke it when component did mount and when receives new props.
+Now add `renderCanvas()` method and pass props to it. This method will handle rendering circles on canvas. Remember to invoke it when component did mount and when receives new props.
 
 ```javascript
 // ...
