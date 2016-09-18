@@ -120,7 +120,7 @@ Grab the styles from [here](https://github.com/bartoszkrawczyk2/react-redux-canv
 
 We can move on to rendering on canvas. Component's `render()` method handles DOM rendering, but we can create another method for canvas element.
 
-First, lets get rendering context and set resolution:
+First, let's get rendering context and set resolution:
 
 * **app/containers/circles.js**
 
@@ -162,6 +162,10 @@ class Circles extends Component {
         this.ctx = this.refs.canvas.getContext('2d');
 
         this.renderCanvas(this.props);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.renderCanvas(nextProps);
     }
 
     renderCanvas(props) {
@@ -209,4 +213,138 @@ Now let's loop through our circles and draw them on canvas:
 // ...
 ```
 
-Your canvas still remains blank, because all circles have property **enabled** set to **false**. Change it in `app/containers/circles.js`. You can also play with **x** and **y** properties and see how it renders. 
+Your canvas still remains blank, because all circles have property **enabled** set to **false**. Change it in `app/containers/circles.js`. You can also play with **x** and **y** properties and see how it renders.
+
+## Add toolbar and toggle visibility
+
+It's time to change visibility of the circles from React UI. First let's create component for buttons:
+
+* **app/components/toolbarItem.js**
+
+```javascript
+import React, { Component } from 'react';
+import classnames from 'classnames';
+
+class ToolbarItem extends Component {
+    render() {
+        return (
+            <li
+                className={classnames('toolbar__item', {
+                    'active': this.props.enabled
+                })}
+                onClick={this.props.onClick}>
+                <span
+                    style={{
+                        backgroundColor: this.props.color
+                    }} />
+            </li>
+        );
+    }
+}
+
+export default ToolbarItem;
+```
+
+Add an action creator for visibility change and handle it in reducer:
+
+* **app/actions/circles.js**
+
+```javascript
+export const toggleCircle = circleIndex => ({
+    type: 'TOGGLE_CIRCLE',
+    circleIndex
+});
+```
+
+* **app/reducers/circles.js**
+
+```javascript
+// ...
+export default (state = defaultState(), action) => {
+    switch (action.type) {
+        case 'TOGGLE_CIRCLE': {
+
+            // create copy of the circles array
+            let circles = [...state.circles];
+
+            // toggle enabled property
+            circles[action.circleIndex].enabled = !circles[action.circleIndex].enabled;
+            
+            // return new state
+            return Object.assign({}, state, {
+                circles
+            });
+        }
+
+        default:
+            return state;
+    }
+}
+```
+
+
+Next step is adding it to our container. It should look like this:
+
+* **app/containers/circles.js**
+
+```javascript
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import ToolbarItem from '../components/toolbarItem';
+import { toggleCircle } from '../actions/circles';
+
+let mapStateToProps    = (state)    => state;
+let mapDispatchToProps = (dispatch) => ({
+    toggleCircle: index => dispatch(toggleCircle(index))
+});
+
+class Circles extends Component {
+    componentDidMount() {
+        this.refs.canvas.width = 400;
+        this.refs.canvas.height = 400;
+        this.ctx = this.refs.canvas.getContext('2d');
+
+        this.renderCanvas(this.props);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.renderCanvas(nextProps);
+    }
+
+    renderCanvas(props) {
+        this.ctx.fillStyle = '#fff';
+        this.ctx.fillRect(0, 0, this.refs.canvas.width, this.refs.canvas.height);
+
+        for (let circle of props.circles) {
+            if (circle.enabled) {
+                this.ctx.beginPath();
+                this.ctx.arc(circle.x, circle.y, props.circleRadius, 0, 2 * Math.PI, false);
+                this.ctx.fillStyle = circle.color;
+                this.ctx.fill();
+            }
+        }
+    }
+    
+    render() {
+        return (
+            <div className='app-wrapper'>
+                <div className='canvas-wrapper'>
+                    <canvas
+                        ref='canvas'
+                </div>
+                <ul className='toolbar'>
+                    {this.props.circles.map((item, key) => (
+                        <ToolbarItem
+                            key={key}
+                            color={item.color}
+                            enabled={item.enabled}
+                            onClick={() => this.props.toggleCircle(key)} />
+                    ))}
+                </ul>
+            </div>
+        );
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Circles);
+```
