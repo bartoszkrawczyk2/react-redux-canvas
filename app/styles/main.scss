@@ -1,1 +1,44 @@
 @import 'normalize.css';
+
+body {
+    background: #ccc;
+}
+
+.app-wrapper {
+    display: flex;
+}
+
+.canvas-wrapper {
+    padding: 20px;
+}
+
+.toolbar {
+    &__item {
+        display: block;
+        border: 2px solid #a5a5a5;
+        transition: border 300ms;
+        cursor: pointer;
+        padding: 10px;
+        margin: 10px 0;
+
+        > span {
+            opacity: .5;
+            display: block;
+            width: 50px;
+            height: 50px;
+            margin: auto;
+            border-radius: 50%;
+            transition: opacity 300ms;
+        }
+
+        &.active {
+            border-color: #222;
+        }
+
+        &.active, &:hover {
+            > span {
+                opacity: 1;
+            }
+        }
+    }
+}
