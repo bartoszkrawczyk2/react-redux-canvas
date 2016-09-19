@@ -48,19 +48,22 @@ class Circles extends Component {
     _mouseDown(e) {
         let x = e.nativeEvent.offsetX || e.nativeEvent.layerX;
         let y = e.nativeEvent.offsetY || e.nativeEvent.layerY;
+        let r = this.props.circleRadius;
 
         for (let i = this.props.circles.length - 1; i >= 0; i--) {
+            let cx = this.props.circles[i].x;
+            let cy = this.props.circles[i].y;
+            
             if (
-                x >= this.props.circles[i].x - this.props.circleRadius &&
-                x <= this.props.circles[i].x + this.props.circleRadius &&
-                y >= this.props.circles[i].y - this.props.circleRadius &&
-                y <= this.props.circles[i].y + this.props.circleRadius &&
-                this.props.circles[i].enabled
+                Math.pow((x - cx), 2) + Math.pow((y - cy), 2) <= Math.pow(r, 2)
+                && this.props.circles[i].enabled
             ) {
                 this.helpers.circle = i;
                 this.helpers.dragging = true;
                 this.helpers.offsetX = this.props.circles[i].x - x;
                 this.helpers.offsetY = this.props.circles[i].y - y;
+                this.helpers.x = x + this.helpers.offsetX;
+                this.helpers.y = y + this.helpers.offsetY;
                 return;
             }
         }
@@ -86,7 +89,10 @@ class Circles extends Component {
 
     _mouseUp(e) {
         this.helpers.dragging = false;
-        this.props.moveCircle(this.helpers.circle, this.helpers.x, this.helpers.y);
+        if (this.helpers.circle !== null) {
+            this.props.moveCircle(this.helpers.circle, this.helpers.x, this.helpers.y);
+            this.helpers.circle = null;
+        }
     }
     
     render() {
