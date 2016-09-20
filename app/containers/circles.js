@@ -60,10 +60,10 @@ class Circles extends Component {
             ) {
                 this.helpers.circle = i;
                 this.helpers.dragging = true;
-                this.helpers.offsetX = this.props.circles[i].x - x;
-                this.helpers.offsetY = this.props.circles[i].y - y;
-                this.helpers.x = x + this.helpers.offsetX;
-                this.helpers.y = y + this.helpers.offsetY;
+                this.helpers.offsetX = cx - x;
+                this.helpers.offsetY = cy - y;
+                this.helpers.x = cx;
+                this.helpers.y = cy;
                 return;
             }
         }
