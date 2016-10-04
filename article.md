@@ -35,7 +35,7 @@ react-redux-canvas/
 
 Let's start with `app.js` file. Import react, redux, main reducer and container, create your redux store and render it to DOM.
 
-* **app/app.js**
+> app/app.js
 
 ```javascript
 import 'babel-polyfill';
@@ -56,7 +56,7 @@ render(
 
 Now create container and reducer with default state for circles:
 
-* **app/containers/circles.js**
+> app/containers/circles.js
 
 ```javascript
 import React, { Component } from 'react';
@@ -81,7 +81,7 @@ class Circles extends Component {
 export default connect(mapStateToProps, mapDispatchToProps)(Circles);
 ```
 
-* **app/reducers/circles.js**
+> app/reducers/circles.js
 
 ```javascript
 const defaultState = () => ({
@@ -122,7 +122,7 @@ We can move on to rendering on canvas. Component's `render()` method handles DOM
 
 First, let's get rendering context and set resolution:
 
-* **app/containers/circles.js**
+> app/containers/circles.js
 
 ```javascript
 // ...
@@ -219,7 +219,7 @@ Your canvas still remains blank, because all circles have property **enabled** s
 
 It's time to change visibility of the circles from React UI. First let's create component for buttons:
 
-* **app/components/toolbarItem.js**
+> app/components/toolbarItem.js
 
 ```javascript
 import React, { Component } from 'react';
@@ -247,7 +247,7 @@ export default ToolbarItem;
 
 Add an action creator for visibility change and handle it in reducer:
 
-* **app/actions/circles.js**
+> app/actions/circles.js
 
 ```javascript
 export const toggleCircle = circleIndex => ({
@@ -256,7 +256,7 @@ export const toggleCircle = circleIndex => ({
 });
 ```
 
-* **app/reducers/circles.js**
+> app/reducers/circles.js
 
 ```javascript
 // ...
@@ -285,7 +285,7 @@ export default (state = defaultState(), action) => {
 
 Next step is adding it to our container. It should look like this:
 
-* **app/containers/circles.js**
+> app/containers/circles.js
 
 ```javascript
 import React, { Component } from 'react';
@@ -330,7 +330,7 @@ class Circles extends Component {
             <div className='app-wrapper'>
                 <div className='canvas-wrapper'>
                     <canvas
-                        ref='canvas'
+                        ref='canvas' />
                 </div>
                 <ul className='toolbar'>
                     {this.props.circles.map((item, key) => (
@@ -347,4 +347,60 @@ class Circles extends Component {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Circles);
+```
+
+
+## Handle circles dragging
+
+Last step is handling user interaction on canvas. We have to handle three DOM events: `mousedown`, `mousemove` and `mouseup`. Each of these events will handle different things:
+
+* `mousedown`
+    * Check if user clicked one of the circles.
+    * Store distance between click point and center of the circle.
+* `mousemove`
+    * Get x and y coordinates
+    * Render movement by calling `renderCanvas` method
+* `mouseup`
+    * Update app's state by dispatching an action
+
+Notice that we are changing state only on mouseup. Updating state and rendering canvas from this state on mousemove would cause poor performance. We also don't need to keep track on whole movement. In this case we need to know what is new, updated position of circles.
+
+So let's start with binding events to canvas, like any other DOM elements:
+
+> app/containers/circles.js
+
+```javascript
+// ...
+    <canvas
+        ref='canvas'
+        onMouseDown={this._mouseDown.bind(this)}
+        onMouseMove={this._mouseMove.bind(this)}
+        onMouseUp={this._mouseUp.bind(this)} />
+// ...
+```
+
+We need some helpers to communicate between events. We can add helper object binded to component:
+
+> app/containers/circles.js
+
+```javascript
+// ...
+class Circles extends Component {
+    componentDidMount() {
+        this.refs.canvas.width = 400;
+        this.refs.canvas.height = 400;
+        this.ctx = this.refs.canvas.getContext('2d');
+
+        this.helpers = {
+            dragging: false,    // true if user is dragging any circle
+            circle: null,       // id of dragged circle
+            offsetX: 0,         // x distance between click point and center of dragged circle
+            offsetY: 0,         // y distance between click point and center of dragged circle
+            x: 0,               // updated x
+            y: 0                // updated y
+        };
+        
+        this.renderCanvas(this.props);
+    }
+// ...
 ```

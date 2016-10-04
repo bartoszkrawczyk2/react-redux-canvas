@@ -18,6 +18,7 @@ How to build :
 
 ### Install:
 * Run `npm install` to download all dependencies
+* Run `npm install gulp -g` if you don't have gulp cli installed
 
 ### Build:  
 * Run `gulp build` to build app to `dist` folder
