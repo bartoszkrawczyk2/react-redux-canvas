@@ -365,6 +365,8 @@ Last step is handling user interaction on canvas. We have to handle three DOM ev
 
 Notice that we are changing state only on mouseup. Updating state and rendering canvas from this state on mousemove would cause poor performance. We also don't need to keep track on whole movement. In this case we need to know what is new, updated position of circles.
 
+### Bind events and add action
+
 So let's start with binding events to canvas, like any other DOM elements:
 
 > app/containers/circles.js
@@ -379,7 +381,38 @@ So let's start with binding events to canvas, like any other DOM elements:
 // ...
 ```
 
-We need some helpers to communicate between events. We can add helper object binded to component:
+Add this code to reducer to handle circle's position change:
+
+> app/reducers/circles.js
+
+```javascript
+//...
+        case 'MOVE_CIRCLE': {
+            let circles = [...state.circles];
+            circles[action.circleIndex].x = action.x;
+            circles[action.circleIndex].y = action.y;
+
+            return Object.assign({}, state, {
+                circles
+            });
+        }
+//...
+```
+And of course add action creator:
+
+> app/actions/circles.js
+
+```javascript
+// ...
+export const moveCircle = (circleIndex, x, y) => ({
+    type: 'MOVE_CIRCLE',
+    circleIndex,
+    x,
+    y
+});
+```
+
+Now we need some helpers to communicate between events. We can add helper object binded to component:
 
 > app/containers/circles.js
 
@@ -401,6 +434,43 @@ class Circles extends Component {
         };
         
         this.renderCanvas(this.props);
+    }
+// ...
+```
+
+### Event handlers
+
+As mentioned previously, `mousedown` event will check if one of the circles was clicked. We will use Pythagorean equation for this. Not the fastest solution, but works great for this project.
+
+> app/containers/circles.js
+
+```javascript
+// ...
+    _mouseDown(e) {
+        // get coordinates
+        let x = e.nativeEvent.offsetX;
+        let y = e.nativeEvent.offsetY;
+
+        let r = this.props.circleRadius;
+
+        // loop through circles and check if coordinates are in any circle
+        for (let i = this.props.circles.length - 1; i >= 0; i--) {
+            let cx = this.props.circles[i].x;
+            let cy = this.props.circles[i].y;
+            
+            if (
+                Math.pow((x - cx), 2) + Math.pow((y - cy), 2) <= Math.pow(r, 2)
+                && this.props.circles[i].enabled
+            ) {
+                this.helpers.circle = i;
+                this.helpers.dragging = true;
+                this.helpers.offsetX = cx - x;
+                this.helpers.offsetY = cy - y;
+                this.helpers.x = cx;
+                this.helpers.y = cy;
+                return;
+            }
+        }
     }
 // ...
 ```

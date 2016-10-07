@@ -46,8 +46,8 @@ class Circles extends Component {
     }
 
     _mouseDown(e) {
-        let x = e.nativeEvent.offsetX || e.nativeEvent.layerX;
-        let y = e.nativeEvent.offsetY || e.nativeEvent.layerY;
+        let x = e.nativeEvent.offsetX;
+        let y = e.nativeEvent.offsetY;
         let r = this.props.circleRadius;
 
         for (let i = this.props.circles.length - 1; i >= 0; i--) {
@@ -72,8 +72,8 @@ class Circles extends Component {
     _mouseMove(e) {
         if (!this.helpers.dragging) return;
 
-        let x = e.nativeEvent.offsetX || e.nativeEvent.layerX;
-        let y = e.nativeEvent.offsetY || e.nativeEvent.layerY;
+        let x = e.nativeEvent.offsetX;
+        let y = e.nativeEvent.offsetY;
 
         let circles = [...this.props.circles];
 
