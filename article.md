@@ -6,6 +6,8 @@ But how to connect canvas with React components and Redux state?
 
 This article will show you a simple example in which you can toggle visibility of three circles, drag them around canvas and keep it all in sync with UI and app state.
 
+**Note:** You should be familiar with basics of React, Redux and Canvas API to complete this tutorial.  
+
 ![screencast](http://projects.bartoszkrawczyk.com/canvas.gif)
 
 ## File structure
@@ -118,7 +120,7 @@ Grab the styles from [here](https://github.com/bartoszkrawczyk2/react-redux-canv
 
 ## Render on canvas
 
-We can move on to rendering on canvas. Component's `render()` method handles DOM rendering, but we can create another method for canvas element.
+Component's `render()` method handles DOM rendering, but we can create another method for canvas element.
 
 First, let's get rendering context and set resolution:
 
@@ -412,7 +414,7 @@ export const moveCircle = (circleIndex, x, y) => ({
 });
 ```
 
-Now we need some helpers to communicate between events. We can add helper object binded to component:
+Now we need some helpers to communicate between events. We can add helper object binded to the component:
 
 > app/containers/circles.js
 
@@ -438,9 +440,9 @@ class Circles extends Component {
 // ...
 ```
 
-### Event handlers
+### Handling events
 
-As mentioned previously, `mousedown` event will check if one of the circles was clicked. We will use Pythagorean equation for this. Not the fastest solution, but works great for this project.
+As mentioned previously, `mousedown` event will check if one of the circles was clicked. We will use Pythagorean equation for this. Not the fastest solution, but works great for this project. We will also save all parameters to `helpers` object for use in `mousemove` and `mouseup` events.
 
 > app/containers/circles.js
 
@@ -458,10 +460,12 @@ As mentioned previously, `mousedown` event will check if one of the circles was 
             let cx = this.props.circles[i].x;
             let cy = this.props.circles[i].y;
             
+            // check if user clicked any circle
             if (
                 Math.pow((x - cx), 2) + Math.pow((y - cy), 2) <= Math.pow(r, 2)
                 && this.props.circles[i].enabled
             ) {
+                // save helpers and exit function
                 this.helpers.circle = i;
                 this.helpers.dragging = true;
                 this.helpers.offsetX = cx - x;
@@ -472,5 +476,47 @@ As mentioned previously, `mousedown` event will check if one of the circles was 
             }
         }
     }
+
+    _mouseMove(e) {
+        // skip if user didn't click any circle
+        if (!this.helpers.dragging) return;
+
+        // get coordinates
+        let x = e.nativeEvent.offsetX;
+        let y = e.nativeEvent.offsetY;
+
+        // create a copy of circles array
+        let circles = [...this.props.circles];
+
+        // update helpers
+        this.helpers.x = x + this.helpers.offsetX;
+        this.helpers.y = y + this.helpers.offsetY;
+
+        // set new coordinates of circles
+        circles[this.helpers.circle].x = this.helpers.x;
+        circles[this.helpers.circle].y = this.helpers.y;
+
+        // rerender canvas
+        this.renderCanvas(Object.assign({}, this.props, {
+            circles
+        }));
+    }
+
+    _mouseUp(e) {
+        this.helpers.dragging = false;
+
+        if (this.helpers.circle !== null) {
+
+            // dispatch action to update redux state
+            this.props.moveCircle(this.helpers.circle, this.helpers.x, this.helpers.y);
+            
+            this.helpers.circle = null;
+        }
+    }
 // ...
 ```
+
+That's it! Now your app should be fully functional. As you can see it's really easy to combine canvas API with react and redux. There are of course ready packages like [react-canvas](https://github.com/Flipboard/react-canvas), but for simple apps you can easly create this functionality on your own.  
+
+
+You can download this project from [my github](https://github.com/bartoszkrawczyk2/react-redux-canvas/).
